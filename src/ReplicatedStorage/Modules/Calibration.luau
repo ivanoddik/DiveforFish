@@ -270,6 +270,47 @@ local function readUpgrades(root)
 					end
 				end
 				out[upgFolder.Name] = desc
+			elseif upgFolder.Name == "BackpackLevels" then
+				local desc = {}
+				for _, lvlFolder in ipairs(upgFolder:GetChildren()) do
+					if lvlFolder:IsA("Folder") then
+						local levelNum = tonumber(lvlFolder.Name)
+						if levelNum then
+							local costInst = lvlFolder:FindFirstChild("Cost")
+							local newLevelInst = lvlFolder:FindFirstChild("NewLevel")
+							desc[levelNum] = {
+								Cost = costInst and costInst.Value or math.huge,
+								NewLevel = newLevelInst and newLevelInst.Value or nil
+							}
+						end
+					end
+				end
+				out[upgFolder.Name] = desc
+			elseif upgFolder.Name == "OxygenLevels" then
+				local desc = {}
+				for _, lvlFolder in ipairs(upgFolder:GetChildren()) do
+					if lvlFolder:IsA("Folder") then
+						local levelNum = tonumber(lvlFolder.Name)
+						if levelNum then
+							local cost1 = lvlFolder:FindFirstChild("Cost1")
+							local newLevel1 = lvlFolder:FindFirstChild("NewLevel1")
+							local cost5 = lvlFolder:FindFirstChild("Cost5")
+							local newLevel5 = lvlFolder:FindFirstChild("NewLevel5")
+							local cost10 = lvlFolder:FindFirstChild("Cost10")
+							local newLevel10 = lvlFolder:FindFirstChild("NewLevel10")
+							
+							desc[levelNum] = {
+								Cost1 = cost1 and cost1.Value,
+								NewLevel1 = newLevel1 and newLevel1.Value,
+								Cost5 = cost5 and cost5.Value,
+								NewLevel5 = newLevel5 and newLevel5.Value,
+								Cost10 = cost10 and cost10.Value,
+								NewLevel10 = newLevel10 and newLevel10.Value,
+							}
+						end
+					end
+				end
+				out[upgFolder.Name] = desc
 			else
 				-- Oxygen items
 				local desc = {
@@ -366,6 +407,11 @@ function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpack
 	
 	if statName == "Backpack" then
 		local backpackLevel = (playerBackpackUpgrades or 0) + 1
+		local levelsCfg = cal.Upgrades["BackpackLevels"]
+		if levelsCfg and levelsCfg[backpackLevel] then
+			return levelsCfg[backpackLevel].Cost, levelsCfg[backpackLevel].NewLevel
+		end
+		
 		local cfg = cal.Upgrades["Backpack"]
 		if cfg and cfg.Costs and cfg.Costs[backpackLevel] then
 			return cfg.Costs[backpackLevel]
@@ -373,7 +419,23 @@ function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpack
 		return math.huge
 	end
 
-	-- Oxygen Tier 1, 5, 10
+	if statName == "Oxygen1" or statName == "Oxygen5" or statName == "Oxygen10" then
+		local oxygenLevel = playerOxygenLevel or 100
+		local levelsCfg = cal.Upgrades["OxygenLevels"]
+		
+		if levelsCfg and levelsCfg[oxygenLevel] then
+			local t = levelsCfg[oxygenLevel]
+			if statName == "Oxygen1" and t.Cost1 then
+				return t.Cost1, t.NewLevel1
+			elseif statName == "Oxygen5" and t.Cost5 then
+				return t.Cost5, t.NewLevel5
+			elseif statName == "Oxygen10" and t.Cost10 then
+				return t.Cost10, t.NewLevel10
+			end
+		end
+	end
+
+	-- Legacy fallback: Oxygen Tier 1, 5, 10
 	local cfg = cal.Upgrades[statName]
 	if not cfg then return math.huge end
 

@@ -24,7 +24,7 @@ local DEFAULT_DATA = {
 	OxygenUpgrades1 = 0,
 	OxygenUpgrades5 = 0,
 	OxygenUpgrades10 = 0,
-	OxygenUpgradeLevel = 0,
+	OxygenUpgradeLevel = 100,
 	BackpackUpgrades = 0,
 	CarryLevel = 1,
 	BackpackCapacity = 1,
@@ -103,6 +103,7 @@ function PlayerProfile.new(player, profile)
 	player:SetAttribute("OxygenUpgrades1", self.Data.OxygenUpgrades1 or 0)
 	player:SetAttribute("OxygenUpgrades5", self.Data.OxygenUpgrades5 or 0)
 	player:SetAttribute("OxygenUpgrades10", self.Data.OxygenUpgrades10 or 0)
+	player:SetAttribute("OxygenUpgradeLevel", self.Data.OxygenUpgradeLevel or 100)
 	player:SetAttribute("BackpackUpgrades", self.Data.BackpackUpgrades or 0)
 	player:SetAttribute("Collections", game:GetService("HttpService"):JSONEncode(self.Data.Collections or {}))
 	
@@ -121,6 +122,10 @@ function PlayerProfile:Verify()
 			warn(string.format("[DataService] Data validation failed for %s: %s expected %s, got %s", self.Player.Name, key, expectedType, type(self.Data[key])))
 			self.Data[key] = DEFAULT_DATA[key]
 		end
+	end
+	
+	if self.Data.OxygenUpgradeLevel == 0 then
+		self.Data.OxygenUpgradeLevel = 100
 	end
 end
 
@@ -172,7 +177,7 @@ function PlayerProfile:Update(key, value)
 	-- Sync relevant attributes
 	if key == "Cash" or key == "Rebirths" or key == "BackpackCapacity" or key == "MaxOxygen" or key == "CarryLevel" 
 		or key == "OxygenUpgrades1" or key == "OxygenUpgrades5" or key == "OxygenUpgrades10" or key == "BackpackUpgrades" 
-		or key == "TutorialStep" then
+		or key == "TutorialStep" or key == "OxygenUpgradeLevel" then
 		self.Player:SetAttribute(key, value)
 	elseif key == "TutorialCompleted" then
 		self.Player:SetAttribute("TutorialComplete", value)
