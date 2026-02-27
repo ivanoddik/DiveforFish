@@ -1,0 +1,10 @@
+{
+  "className": "Sound",
+  "properties": {
+    "SourceAssetId": 17582299860.0,
+    "AcousticSimulationEnabled": {
+      "Bool": true
+    },
+    "AudioContent": "rbxassetid://17582299860"
+  }
+}

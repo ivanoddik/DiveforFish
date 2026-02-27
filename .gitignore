@@ -1,0 +1,7 @@
+*.rbxl.lock
+*.rbxlx.lock
+.DS_Store
+Thumbs.db
+.aftman/
+aftman.lock
+node_modules/

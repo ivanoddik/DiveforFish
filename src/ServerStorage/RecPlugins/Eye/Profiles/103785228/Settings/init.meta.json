@@ -1,0 +1,9 @@
+{
+  "attributes": {
+    "ignore_idle_time": true,
+    "is_rdata": true,
+    "rps": true,
+    "track_playtest": true
+  },
+  "className": "Configuration"
+}
