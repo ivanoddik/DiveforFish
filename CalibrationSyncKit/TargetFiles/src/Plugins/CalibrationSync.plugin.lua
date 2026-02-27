@@ -257,9 +257,9 @@ local function processOxygenUpgradesSheet(data, calibration)
 	local upgradesFolder = ensureFolder(calibration, "Upgrades")
 	local oxygenLevelsFolder = ensureFolder(upgradesFolder, "OxygenLevels")
 	
-	for _, rowData in pairs(data) do
+	for oxyLevelId, rowData in pairs(data) do
 		if type(rowData) == "table" then
-			local oxyLevel = tonumber(rowData["OxygenLevel"])
+			local oxyLevel = tonumber(oxyLevelId)
 			if oxyLevel then
 				local levelFolder = ensureFolder(oxygenLevelsFolder, tostring(oxyLevel))
 				
@@ -281,7 +281,7 @@ local function processSpawnZonesSheet(data, calibration)
 	local zonesFolder = ensureFolder(calibration, "SpawnZones")
 	
 	for zoneName, rowData in pairs(data) do
-		if type(rowData) == "table" then
+		if type(rowData) == "table" and zoneName then
 			local zFolder = ensureFolder(zonesFolder, tostring(zoneName))
 			
 			if rowData["MaxCommon"] ~= nil and setNumberValue(zFolder, "MaxCommon", rowData["MaxCommon"], true) then updated += 1 end
