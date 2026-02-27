@@ -445,7 +445,7 @@ local function updateUpgrades()
 	end
 
 	local maxOxygen = player:GetAttribute("MaxOxygen") or 100
-	local globalOxygenLevel = player:GetAttribute("OxygenUpgradeLevel") or 0
+	local globalOxygenLevel = player:GetAttribute("OxygenUpgradeLevel") or 100
 
 	for frameName, data in pairs(oxygenUpgrades) do
 		local frame = oxygenHolder:FindFirstChild(frameName)

@@ -420,7 +420,7 @@ function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpack
 	end
 
 	if statName == "Oxygen1" or statName == "Oxygen5" or statName == "Oxygen10" then
-		local oxygenLevel = playerOxygenLevel or 100
+		local oxygenLevel = (playerOxygenLevel and playerOxygenLevel > 0) and playerOxygenLevel or 100
 		local levelsCfg = cal.Upgrades["OxygenLevels"]
 		
 		if levelsCfg and levelsCfg[oxygenLevel] then
