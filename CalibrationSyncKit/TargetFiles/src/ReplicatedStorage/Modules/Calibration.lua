@@ -494,7 +494,8 @@ function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpack
 	local oxyMap = cal.Upgrades["OxygenLevels"]
 	if not oxyMap then return math.huge end
 	
-	local currentLvl = playerOxygenLevel or 100
+	local currentLvl = playerOxygenLevel
+	if currentLvl == nil or currentLvl == 0 then currentLvl = 100 end
 	local levelData = oxyMap[currentLvl]
 	
 	-- Fallback if the requested level maxes out beyond the sheet
