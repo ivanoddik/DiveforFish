@@ -7,8 +7,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 
 local DataService = require(ServerScriptService.Modules.DataService)
 local PlayerHandler = require(ServerScriptService.Modules.PlayerHandler)
-local ModelsConfig = require(ReplicatedStorage.Configuration.ModelsConfig)
-local RebirthConfig = require(ReplicatedStorage.Configuration.RebirthConfig)
+local Calibration = require(ReplicatedStorage.Modules.Calibration)
 local Anti = require(ReplicatedStorage.Persistence.Anti)
 
 -- CONFIGURATION
@@ -60,11 +59,11 @@ function RebirthHandler.CheckRequirements(player, level)
 	local profile = DataService:GetProfile(player)
 	if not profile then return false end
 	
-	local rebirthConfig = RebirthConfig.REBIRTH_MAP[level]
+	local rebirthConfig = Calibration.Get().Rebirths[level]
 	if not rebirthConfig then return false end
 	
 	-- Check Oxygen
-	local requiredOxygen = RebirthConfig.GetOxygenRequirement(level)
+	local requiredOxygen = Calibration.GetOxygenRequirement(level)
 	if (profile.Data.Oxygen or 0) < requiredOxygen then
 		return false
 	end
@@ -75,7 +74,7 @@ function RebirthHandler.CheckRequirements(player, level)
 	
 	for _, modelName in rebirthConfig.Models do
 		local rarity
-		for r, models in pairs(ModelsConfig) do
+		for r, models in pairs(Calibration.Get().Models) do
 			if models[modelName] then
 				rarity = r
 				break
@@ -117,7 +116,7 @@ function RebirthHandler.ProcessRebirth(player, level)
 		return 
 	end
 
-	if not RebirthConfig.REBIRTH_MAP[level] then return end
+	if not Calibration.Get().Rebirths[level] then return end
 	
 	if not RebirthHandler.CheckRequirements(player, level) then
 		ReplicatedStorage.Remotes.Notify:FireClient(player, "Requirements not completed", false)
@@ -139,7 +138,7 @@ function RebirthHandler.ProcessSkip(player)
 	if not profile then return end
 	
 	local nextRebirth = (profile.Data.Rebirths or 0) + 1
-	if not RebirthConfig.REBIRTH_MAP[nextRebirth] then return end
+	if not Calibration.Get().Rebirths[nextRebirth] then return end
 	
 	profile:Update("Rebirths", nextRebirth)
 	profile:Update("Cash", 0)

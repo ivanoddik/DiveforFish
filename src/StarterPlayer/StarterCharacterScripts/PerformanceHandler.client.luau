@@ -10,7 +10,7 @@ local ModelCollectDisplay = Assets:WaitForChild("ModelCollectDisplay")
 local UpgradeBoardAsset = Assets:WaitForChild("UpgradeBoard")
 local GoToBeamPrefab = Assets:WaitForChild("GoToBeam")
 
-local MUTATIONS_CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("MutationsConfig"))
+local Calibration = require(ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Calibration"))
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local SpawnRemote = Remotes:WaitForChild("SpawnModel")
 local DespawnRemote = Remotes:WaitForChild("DespawnModel")
@@ -92,7 +92,7 @@ end
 local function applyMutationVisuals(model, mutationName)
 	if mutationName == NORMAL_MUTATION then return nil, nil end
 	
-	local mutationsTable = MUTATIONS_CONFIG.Mutations or (MUTATIONS_CONFIG.CONFIG and MUTATIONS_CONFIG.CONFIG.Mutations)
+	local mutationsTable = Calibration.Get().Mutations
 	if not mutationsTable then return nil, nil end
 	
 	local mData = mutationsTable[mutationName]

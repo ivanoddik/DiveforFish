@@ -7,15 +7,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local DataService = require(ServerScriptService.Modules.DataService)
 local PlayerHandler = require(ServerScriptService.Modules.PlayerHandler)
 local TutorialHandler = require(ServerScriptService.Modules.TutorialHandler)
+local Calibration = require(ReplicatedStorage.Modules.Calibration)
 local Anti = require(ReplicatedStorage.Persistence.Anti)
-
--- CONFIGURATION
-local BACKPACK_UPGRADE_COSTS = {
-	[1] = 500_000,
-	[2] = 25_000_000,
-	[3] = 1_000_000_000,
-	[4] = 750_000_000_000,
-}
 
 local DEBOUNCE_TIME = 0.5
 
@@ -26,50 +19,9 @@ local priceCache = {}
 -- PRICING LOGIC
 local function getUpgradePrice(statName, playerProfile)
 	local oxygenLevel = playerProfile.Data.OxygenUpgradeLevel or 0
+	local backpackLevel = playerProfile.Data.BackpackUpgrades or 0
 	
-	if statName == "Oxygen1" then
-		local basePrice = 500
-		local currentIncrement = 25
-		local totalPrice = basePrice
-		
-		for i = 1, oxygenLevel do
-			totalPrice += currentIncrement
-			currentIncrement += 1
-		end
-		return totalPrice
-		
-	elseif statName == "Oxygen5" then
-		local basePrice = 2800
-		local currentIncrement = 30
-		local totalPrice = basePrice
-		
-		for i = 1, oxygenLevel do
-			totalPrice += currentIncrement
-			if i % 2 == 0 then
-				currentIncrement += 2
-			end
-		end
-		return totalPrice
-		
-	elseif statName == "Oxygen10" then
-		local basePrice = 6300
-		local currentIncrement = 35
-		local totalPrice = basePrice
-		
-		for i = 1, oxygenLevel do
-			totalPrice += currentIncrement
-			if i % 2 == 0 then
-				currentIncrement += 3
-			end
-		end
-		return totalPrice
-		
-	elseif statName == "Backpack" then
-		local backpackLevel = (playerProfile.Data.BackpackUpgrades or 0) + 1
-		return BACKPACK_UPGRADE_COSTS[backpackLevel] or math.huge
-	end
-	
-	return math.huge
+	return Calibration.GetUpgradePrice(statName, oxygenLevel, backpackLevel)
 end
 
 -- Optimization: Atomic update for Oxygen
@@ -150,7 +102,9 @@ local function handleUpgradeStat(player, statName)
 		incrementValue = 10
 	elseif statName == "Backpack" then
 		incrementValue = 1
-		if (profile.Data.BackpackUpgrades or 0) >= #BACKPACK_UPGRADE_COSTS then
+		local cfg = Calibration.Get().Upgrades["Backpack"]
+		local costs = cfg and cfg.Costs or {}
+		if (profile.Data.BackpackUpgrades or 0) >= #costs then
 			isLevelCapped = true
 		end
 	else

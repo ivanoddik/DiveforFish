@@ -8,8 +8,7 @@ local ASSETS = ReplicatedStorage:WaitForChild("Storage"):WaitForChild("Assets")
 local MODELS_FOLDER = ReplicatedStorage:WaitForChild("Models")
 local TEMPLATE_PROMPT = ASSETS:WaitForChild("Templateprompt")
 local COLLECTOR_GUI = ASSETS:WaitForChild("CollectorGui")
-local MODELS_CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("ModelsConfig"))
-local MUTATIONS_CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("MutationsConfig"))
+local Calibration = require(ReplicatedStorage.Modules.Calibration)
 local TutorialHandler = require(script.Parent:WaitForChild("TutorialHandler"))
 local REMOTES = ReplicatedStorage:WaitForChild("Remotes")
 local SpawnRemote = REMOTES:WaitForChild("SpawnModel")
@@ -42,7 +41,7 @@ local function formatNumber(n)
 end
 
 local function findModelInfoInConfig(modelName)
-	for rarity, models in pairs(MODELS_CONFIG) do
+	for rarity, models in pairs(Calibration.Get().Models) do
 		if models[modelName] then
 			return models[modelName], rarity
 		end
@@ -338,7 +337,7 @@ function ModelPlacementHandler.SetupPlacementPrompt(pad, base)
 				else
 					-- Notify PerformanceHandler for visuals
 					local multiplier = 1
-					local mutationsTable = MUTATIONS_CONFIG.Mutations or (MUTATIONS_CONFIG.CONFIG and MUTATIONS_CONFIG.CONFIG.Mutations)
+					local mutationsTable = Calibration.Get().Mutations
 					if mutation ~= NORMAL_MUTATION and mutationsTable then
 						local mData = mutationsTable[mutation]
 						if mData then

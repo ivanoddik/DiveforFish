@@ -6,7 +6,7 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
 local DataService = require(script.Parent:WaitForChild("DataService"))
-local ModelsConfig = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("ModelsConfig"))
+local Calibration = require(ReplicatedStorage.Modules.Calibration)
 local Anti = require(ReplicatedStorage:WaitForChild("Persistence"):WaitForChild("Anti"))
 local REMOTES = ReplicatedStorage:WaitForChild("Remotes")
 local UPDATE_COLLECTION = REMOTES:WaitForChild("UpdateCollection")
@@ -59,7 +59,7 @@ function InventoryHandler.UpdateDailyLogin(player)
 end
 
 local function findModelInfoInConfig(modelName)
-	for rarity, models in pairs(ModelsConfig) do
+	for rarity, models in pairs(Calibration.Get().Models) do
 		if models[modelName] then
 			return models[modelName], rarity
 		end

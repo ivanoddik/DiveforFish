@@ -44,8 +44,7 @@ local dailyClaimBtn = dailyFrame:WaitForChild("Claim")
 local dailyClaimTitle = dailyClaimBtn:WaitForChild("Title")
 
 local Assets = ReplicatedStorage:WaitForChild("Storage"):WaitForChild("Assets")
-local CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("ModelsConfig"))
-local REBIRTH_CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("RebirthConfig"))
+local Calibration = require(ReplicatedStorage.Modules.Calibration)
 local REMOTES = ReplicatedStorage:WaitForChild("Remotes")
 local REBIRTH_SKIP = REMOTES:WaitForChild("RebirthSkip")
 local UPDATE_COLLECTION = REMOTES:WaitForChild("UpdateCollection")
@@ -55,14 +54,6 @@ local UPDATE_DAILY = REMOTES:WaitForChild("UpdateDailyReward")
 
 local Animations = require(ReplicatedStorage:WaitForChild("UserInterface"):WaitForChild("Animations"))
 local Monetization = require(ReplicatedStorage:WaitForChild("UserInterface"):WaitForChild("Monetization"))
-
--- BACKPACK UPGRADE COSTS
-local BACKPACK_UPGRADE_COSTS = {
-	[1] = 500_000,
-	[2] = 25_000_000,
-	[3] = 1_000_000_000,
-	[4] = 750_000_000_000,
-}
 
 local GRADIENTS = {
 	Gold = Assets:WaitForChild("GradientGold"),
@@ -273,7 +264,7 @@ function buildModelRegistry()
 	
 	local counter = 0
 	for _, rarity in ipairs(rarityOrder) do
-		local models = CONFIG[rarity]
+		local models = Calibration.Get().Models[rarity]
 		if not models then continue end
 		
 		local modelNames = {}
@@ -374,13 +365,19 @@ local function updateRebirthDisplay()
 	local collections = collectionStr and HttpService:JSONDecode(collectionStr) or {}
 
 	local nextRebirth = rebirths + 1
-	local reqOxygen = REBIRTH_CONFIG.GetOxygenRequirement(nextRebirth)
+	local reqOxygen = Calibration.GetOxygenRequirement(nextRebirth)
 
 	progressTitle.Text = string.format("%d/%d OXYGEN", math.floor(oxygen), reqOxygen)
 	local progressScale = math.clamp(oxygen / reqOxygen, 0, 1)
 	TweenService:Create(progressBar, TweenInfo.new(0.5), {Size = UDim2.fromScale(progressScale, 1)}):Play()
 
-	local rebirthConfig = REBIRTH_CONFIG.REBIRTH_MAP[nextRebirth] or REBIRTH_CONFIG.REBIRTH_MAP[#REBIRTH_CONFIG.REBIRTH_MAP]
+	local cRebirths = Calibration.Get().Rebirths
+	local rebirthConfig = cRebirths[nextRebirth]
+	if not rebirthConfig then
+		local maxK = 0
+		for k in pairs(cRebirths) do if type(k) == "number" and k > maxK then maxK = k end end
+		rebirthConfig = cRebirths[maxK]
+	end
 	local allModelsOwned = true
 
 	if rebirthConfig and rebirthConfig.Models then
@@ -399,7 +396,7 @@ local function updateRebirthDisplay()
 					
 					-- Find the model data in CONFIG
 					local rarity, icon
-					for r, models in pairs(CONFIG) do
+					for r, models in pairs(Calibration.Get().Models) do
 						if models[modelName] then
 							rarity = r
 							icon = models[modelName].Icons and models[modelName].Icons.Normal
@@ -444,35 +441,7 @@ local function updateUpgrades()
 	}
 
 	local function getPrice(stat, level)
-		if stat == "Oxygen1" then
-			local basePrice = 500
-			local currentIncrement = 25
-			local totalPrice = basePrice
-			for i = 1, level do
-				totalPrice += currentIncrement
-				currentIncrement += 1
-			end
-			return totalPrice
-		elseif stat == "Oxygen5" then
-			local basePrice = 2800
-			local currentIncrement = 30
-			local totalPrice = basePrice
-			for i = 1, level do
-				totalPrice += currentIncrement
-				if i % 2 == 0 then currentIncrement += 2 end
-			end
-			return totalPrice
-		elseif stat == "Oxygen10" then
-			local basePrice = 6300
-			local currentIncrement = 35
-			local totalPrice = basePrice
-			for i = 1, level do
-				totalPrice += currentIncrement
-				if i % 2 == 0 then currentIncrement += 3 end
-			end
-			return totalPrice
-		end
-		return 0
+		return Calibration.GetUpgradePrice(stat, level, 0)
 	end
 
 	local maxOxygen = player:GetAttribute("MaxOxygen") or 100
@@ -505,7 +474,7 @@ local function updateUpgrades()
 	local backpackUpgrades = player:GetAttribute("BackpackUpgrades") or 0
 	local nextBackpackLevel = backpackUpgrades + 1
 	local backpackCapacity = player:GetAttribute("BackpackCapacity") or 1
-	local backpackPrice = BACKPACK_UPGRADE_COSTS[nextBackpackLevel] or 0
+	local backpackPrice = Calibration.GetUpgradePrice("Backpack", 0, backpackUpgrades)
 	
 	local backpackUpgradeFrame = backpackHolder:FindFirstChild("Upgrade")
 	if backpackUpgradeFrame then

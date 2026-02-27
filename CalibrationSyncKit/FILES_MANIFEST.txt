@@ -1,0 +1,13 @@
+Required:
+src/Plugins/CalibrationSync.plugin.lua
+src/ReplicatedStorage/Modules/Calibration.lua
+src/ReplicatedStorage/Modules/ConfigReader.lua
+src/ReplicatedStorage/Modules/Utilities.lua
+src/ServerScriptService/Services/CalibrationService.lua
+
+Optional:
+tools/BootstrapCalibration.lua
+
+Primary integration point:
+src/ServerScriptService/Core/GameManager.lua
+  - Calls CalibrationService.Init()

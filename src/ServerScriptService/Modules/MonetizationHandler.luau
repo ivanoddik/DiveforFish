@@ -41,8 +41,9 @@ local REBIRTH_SKIP_REMOTE = REMOTES:WaitForChild("RebirthSkip")
 local UPDATE_TUTORIAL = REMOTES:WaitForChild("UpdateTutorial")
 
 local function findModelInfoInConfig(modelName)
-	local ModelsConfig = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("ModelsConfig"))
-	for rarity, models in pairs(ModelsConfig) do
+	local Calibration = require(ReplicatedStorage.Modules.Calibration)
+	local modelsConfig = Calibration.Get().Models
+	for rarity, models in pairs(modelsConfig) do
 		if models[modelName] then
 			return models[modelName], rarity
 		end

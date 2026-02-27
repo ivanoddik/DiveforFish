@@ -2,8 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local CollectionService = game:GetService("CollectionService")
 
-local CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("ModelsConfig"))
-local MUTATIONS_CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("MutationsConfig"))
+local Calibration = require(ReplicatedStorage.Modules.Calibration)
 local ModelsFolder = ReplicatedStorage:WaitForChild("Models")
 local Assets = ReplicatedStorage:WaitForChild("Storage"):WaitForChild("Assets")
 local TemplatePrompt = Assets:WaitForChild("Templateprompt")
@@ -169,7 +168,7 @@ function ModelHandler.CaptureModel(model, player)
 	local tool = Instance.new("Tool")
 	tool.Name = originalName
 	
-	local rarityConfig = CONFIG[rarity]
+	local rarityConfig = Calibration.Get().Models[rarity]
 	if rarityConfig then
 		local modelData = rarityConfig[originalName]
 		if modelData and modelData.Icons then
@@ -227,7 +226,7 @@ function ModelHandler.CaptureModel(model, player)
 end
 
 local function spawnModel(rarity)
-	local rarityConfig = CONFIG[rarity]
+	local rarityConfig = Calibration.Get().Models[rarity]
 	if not rarityConfig then return end
 	
 	local modelNames = {}
@@ -251,7 +250,7 @@ local function spawnModel(rarity)
 	
 	local mutationName = selectMutation()
 	local multiplier = 1
-	local mutationsTable = MUTATIONS_CONFIG.Mutations or (MUTATIONS_CONFIG.CONFIG and MUTATIONS_CONFIG.CONFIG.Mutations)
+	local mutationsTable = Calibration.Get().Mutations
 	if mutationName ~= NORMAL_MUTATION and mutationsTable then
 		local mData = mutationsTable[mutationName]
 		if mData then multiplier = mData.Multiplier or mData.nMultiplier or 1 end

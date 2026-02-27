@@ -1,0 +1,4 @@
+UpgradeType,BasePrice,BaseIncrement,IncrementModifier
+Oxygen1,500,25,1
+Oxygen5,2800,30,2
+Oxygen10,6300,35,3

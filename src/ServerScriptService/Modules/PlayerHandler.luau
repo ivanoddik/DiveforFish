@@ -16,7 +16,7 @@ local ExitWater = REMOTES:WaitForChild("ExitWater")
 local UpgradeModelRemote = REMOTES:WaitForChild("UpgradeModel")
 
 local ModelPlacementHandler = require(script.Parent:WaitForChild("ModelPlacementHandler"))
-local MODELS_CONFIG = require(ReplicatedStorage:WaitForChild("Configuration"):WaitForChild("ModelsConfig"))
+local Calibration = require(ReplicatedStorage.Modules.Calibration)
 local DataService = require(script.Parent:WaitForChild("DataService"))
 
 -- State / Caching
@@ -148,7 +148,8 @@ local function setVisibility(base, instance, visible)
 end
 
 local function findModelInfoInConfig(modelName)
-	for rarity, models in pairs(MODELS_CONFIG) do
+	local modelsConfig = Calibration.Get().Models
+	for rarity, models in pairs(modelsConfig) do
 		if models[modelName] then
 			return models[modelName], rarity
 		end
