@@ -54,21 +54,17 @@ local currentSpawnCounts = {
 	["Secret"] = 0,
 }
 
-local MUTATION_WEIGHTS = {
-	{name = "Blood", chance = 2},
-	{name = "Emerald", chance = 6},
-	{name = "Diamond", chance = 12},
-	{name = "Gold", chance = 20},
-	{name = NORMAL_MUTATION, chance = 60},
-}
+
 
 local RARITY_ORDER = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythical", "Cosmic", "Secret"}
 
 -- Helpers
 local function selectMutation()
-	local roll = math.random(1, 100)
+	local roll = math.random()
 	local cumulative = 0
-	for _, mutation in MUTATION_WEIGHTS do
+	
+	local spawns = Calibration.GetMutationSpawns()
+	for _, mutation in ipairs(spawns) do
 		cumulative += mutation.chance
 		if roll <= cumulative then
 			return mutation.name

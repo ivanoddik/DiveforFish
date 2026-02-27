@@ -190,7 +190,7 @@ local function processMutationsSheet(data, calibration)
 			if rowData["Color"] ~= nil and setColor3Value(mFolder, "Color", rowData["Color"]) then updated += 1 end
 			if rowData["FillColor"] ~= nil and setColor3Value(mFolder, "FillColor", rowData["FillColor"]) then updated += 1 end
 			if rowData["OutlineColor"] ~= nil and setColor3Value(mFolder, "OutlineColor", rowData["OutlineColor"]) then updated += 1 end
-			if rowData["Multiplier"] ~= nil and setNumberValue(mFolder, "Multiplier", rowData["Multiplier"], false) then updated += 1 end
+			if rowData["SpawnChance"] ~= nil and setNumberValue(mFolder, "SpawnChance", rowData["SpawnChance"], false) then updated += 1 end
 		end
 	end
 	return updated

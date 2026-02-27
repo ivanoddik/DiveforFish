@@ -92,11 +92,14 @@ local function getRoot()
 		ensureString(icons, "Normal", "rbxassetid://100378056095272")
 
 		local mutations = ensureFolder(calFolder, "Mutations")
+		local normal = ensureFolder(mutations, "Normal")
+		ensureNumber(normal, "SpawnChance", 0.65, 0, 1, false)
+
 		local gold = ensureFolder(mutations, "Gold")
 		ensureColor3(gold, "Color", Color3.fromRGB(226, 155, 64))
 		ensureColor3(gold, "FillColor", Color3.fromRGB(255, 170, 0))
 		ensureColor3(gold, "OutlineColor", Color3.fromRGB(188, 125, 0))
-		ensureNumber(gold, "Multiplier", 1.2, 1, 100, false)
+		ensureNumber(gold, "SpawnChance", 0.15, 0, 1, false)
 
 		local rebirths = ensureFolder(calFolder, "Rebirths")
 		local r1 = ensureFolder(rebirths, "1")
@@ -216,7 +219,7 @@ local function readMutations(root)
 				Color = Color3.fromRGB(255, 255, 255),
 				FillColor = Color3.fromRGB(255, 255, 255),
 				OutlineColor = Color3.fromRGB(0, 0, 0),
-				Multiplier = 1
+				SpawnChance = 0
 			}
 
 			local colInst = mFolder:FindFirstChild("Color")
@@ -228,8 +231,8 @@ local function readMutations(root)
 			local outInst = mFolder:FindFirstChild("OutlineColor")
 			if outInst and outInst:IsA("Color3Value") then desc.OutlineColor = outInst.Value end
 
-			local multInst = mFolder:FindFirstChild("Multiplier")
-			if multInst and multInst:IsA("NumberValue") then desc.Multiplier = multInst.Value end
+			local spawnInst = mFolder:FindFirstChild("SpawnChance")
+			if spawnInst and spawnInst:IsA("NumberValue") then desc.SpawnChance = spawnInst.Value end
 
 			out[mFolder.Name] = desc
 		end
@@ -483,6 +486,22 @@ function Calibration.GetSellValue(modelName)
 		end
 	end
 	return 0
+end
+
+function Calibration.GetMutationSpawns()
+	local cal = Calibration.Get()
+	local spawns = {}
+	for name, mData in pairs(cal.Mutations) do
+		if mData.SpawnChance and mData.SpawnChance > 0 then
+			table.insert(spawns, {name = name, chance = mData.SpawnChance})
+		end
+	end
+	
+	table.sort(spawns, function(a, b)
+		return a.chance < b.chance
+	end)
+	
+	return spawns
 end
 
 return Calibration
