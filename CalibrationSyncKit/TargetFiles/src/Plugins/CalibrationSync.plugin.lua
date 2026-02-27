@@ -227,13 +227,23 @@ end
 local function processOxygenUpgradesSheet(data, calibration)
 	local updated = 0
 	local upgradesFolder = ensureFolder(calibration, "Upgrades")
+	local oxygenLevelsFolder = ensureFolder(upgradesFolder, "OxygenLevels")
 	
-	for upgradeType, rowData in pairs(data) do
-		if type(rowData) == "table" and string.match(upgradeType, "^Oxygen") then
-			local tFolder = ensureFolder(upgradesFolder, upgradeType)
-			if rowData["BasePrice"] ~= nil and setNumberValue(tFolder, "BasePrice", rowData["BasePrice"], true) then updated += 1 end
-			if rowData["BaseIncrement"] ~= nil and setNumberValue(tFolder, "BaseIncrement", rowData["BaseIncrement"], true) then updated += 1 end
-			if rowData["IncrementModifier"] ~= nil and setNumberValue(tFolder, "IncrementModifier", rowData["IncrementModifier"], true) then updated += 1 end
+	for _, rowData in pairs(data) do
+		if type(rowData) == "table" then
+			local oxyLevel = tonumber(rowData["OxygenLevel"])
+			if oxyLevel then
+				local levelFolder = ensureFolder(oxygenLevelsFolder, tostring(oxyLevel))
+				
+				if rowData["Oxygen1"] ~= nil and setNumberValue(levelFolder, "Cost1", rowData["Oxygen1"], true) then updated += 1 end
+				if rowData["New Level Oxygen1"] ~= nil and setNumberValue(levelFolder, "NewLevel1", rowData["New Level Oxygen1"], true) then updated += 1 end
+				
+				if rowData["Oxygen5"] ~= nil and setNumberValue(levelFolder, "Cost5", rowData["Oxygen5"], true) then updated += 1 end
+				if rowData["New Level Oxygen5"] ~= nil and setNumberValue(levelFolder, "NewLevel5", rowData["New Level Oxygen5"], true) then updated += 1 end
+				
+				if rowData["Oxygen10"] ~= nil and setNumberValue(levelFolder, "Cost10", rowData["Oxygen10"], true) then updated += 1 end
+				if rowData["New Level Oxygen10"] ~= nil and setNumberValue(levelFolder, "NewLevel10", rowData["New Level Oxygen10"], true) then updated += 1 end
+			end
 		end
 	end
 	return updated

@@ -18,14 +18,15 @@ local priceCache = {}
 
 -- PRICING LOGIC
 local function getUpgradePrice(statName, playerProfile)
-	local oxygenLevel = playerProfile.Data.OxygenUpgradeLevel or 0
+	local oxygenLevel = playerProfile.Data.OxygenUpgradeLevel or 100 -- Starting tier in the new CSV
 	local backpackLevel = playerProfile.Data.BackpackUpgrades or 0
 	
+	-- Returns: price, newLevel (for Oxygen tier skips/explicit mapping)
 	return Calibration.GetUpgradePrice(statName, oxygenLevel, backpackLevel)
 end
 
 -- Optimization: Atomic update for Oxygen
-function UpgradeHandler.ApplyOxygenUpgrade(player, increment, price)
+function UpgradeHandler.ApplyOxygenUpgrade(player, increment, price, newLevel)
 	local profile = DataService:GetProfile(player)
 	if not profile then return false end
 	
@@ -36,7 +37,7 @@ function UpgradeHandler.ApplyOxygenUpgrade(player, increment, price)
 	profile:BatchUpdate(function(data)
 		if price then data.Cash -= price end
 		data[dataKey] = (data[dataKey] or 0) + 1
-		data.OxygenUpgradeLevel = (data.OxygenUpgradeLevel or 0) + 1
+		data.OxygenUpgradeLevel = newLevel or (data.OxygenUpgradeLevel or 100)
 		data.MaxOxygen = (data.MaxOxygen or 0) + increment
 		data.Oxygen = (data.Oxygen or 0) + increment
 		return true
@@ -118,7 +119,14 @@ local function handleUpgradeStat(player, statName)
 	end
 	
 	if not priceCache[player] then priceCache[player] = {} end
-	local price = priceCache[player][statName] or getUpgradePrice(statName, profile)
+	
+	local price, newLevel
+	if priceCache[player][statName] then
+		price = priceCache[player][statName].price
+		newLevel = priceCache[player][statName].newLevel
+	else
+		price, newLevel = getUpgradePrice(statName, profile)
+	end
 	
 	if profile.Data.Cash >= price then
 		local success = false
@@ -127,7 +135,7 @@ local function handleUpgradeStat(player, statName)
 			success = UpgradeHandler.ApplyBackpackUpgrade(player, price)
 		else
 			-- Oxygen tiers
-			success = UpgradeHandler.ApplyOxygenUpgrade(player, incrementValue, price)
+			success = UpgradeHandler.ApplyOxygenUpgrade(player, incrementValue, price, newLevel)
 			if success then
 				Notify:FireClient(player, "Upgraded Oxygen!", true)
 				TutorialHandler.OnUpgradePerformed(player)
@@ -136,7 +144,8 @@ local function handleUpgradeStat(player, statName)
 		
 		if success then
 			-- Invalidate cache after modification
-			priceCache[player][statName] = getUpgradePrice(statName, profile)
+			local updatedPrice, updatedNewLevel = getUpgradePrice(statName, profile)
+			priceCache[player][statName] = { price = updatedPrice, newLevel = updatedNewLevel }
 		end
 	else
 		Notify:FireClient(player, "Can't afford upgrade", false)

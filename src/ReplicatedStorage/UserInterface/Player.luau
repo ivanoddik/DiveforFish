@@ -458,7 +458,11 @@ local function updateUpgrades()
 		if buyBtn then
 			local priceLabel = buyBtn:FindFirstChild("Price")
 			if priceLabel then
-				priceLabel.Text = formatNumber(price)
+				if price > 0 and price ~= math.huge then
+					priceLabel.Text = formatNumber(price)
+				else
+					priceLabel.Text = "MAX"
+				end
 			end
 		end
 		

@@ -102,10 +102,14 @@ local function getRoot()
 		local upgrades = ensureFolder(calFolder, "Upgrades")
 		local back = ensureFolder(upgrades, "Backpack")
 		ensureString(back, "LevelCosts", "500000, 25000000, 1000000000")
-		local ox1 = ensureFolder(upgrades, "Oxygen1")
-		ensureNumber(ox1, "BasePrice", 500, 0, 9999999, true)
-		ensureNumber(ox1, "BaseIncrement", 25, 0, 9999, true)
-		ensureNumber(ox1, "IncrementModifier", 1, 1, 10, true)
+		local oxyLevels = ensureFolder(upgrades, "OxygenLevels")
+		local ox100 = ensureFolder(oxyLevels, "100")
+		ensureNumber(ox100, "Cost1", 500, 0, 9999999, true)
+		ensureNumber(ox100, "NewLevel1", 101, 0, 9999999, true)
+		ensureNumber(ox100, "Cost5", 2750, 0, 9999999, true)
+		ensureNumber(ox100, "NewLevel5", 105, 0, 9999999, true)
+		ensureNumber(ox100, "Cost10", 6125, 0, 9999999, true)
+		ensureNumber(ox100, "NewLevel10", 110, 0, 9999999, true)
 	end
 
 	local config = ReplicatedStorage:FindFirstChild("Config")
@@ -270,23 +274,36 @@ local function readUpgrades(root)
 					end
 				end
 				out[upgFolder.Name] = desc
-			else
-				-- Oxygen items
-				local desc = {
-					BasePrice = 0,
-					BaseIncrement = 0,
-					IncrementModifier = 1
-				}
-				local pInst = upgFolder:FindFirstChild("BasePrice")
-				if pInst and pInst:IsA("IntValue") then desc.BasePrice = pInst.Value end
-
-				local iInst = upgFolder:FindFirstChild("BaseIncrement")
-				if iInst and iInst:IsA("IntValue") then desc.BaseIncrement = iInst.Value end
-
-				local mInst = upgFolder:FindFirstChild("IncrementModifier")
-				if mInst and mInst:IsA("IntValue") then desc.IncrementModifier = mInst.Value end
-
-				out[upgFolder.Name] = desc
+			elseif upgFolder.Name == "OxygenLevels" then
+				local oxyMap = {}
+				for _, levelFolder in ipairs(upgFolder:GetChildren()) do
+					local levelNum = tonumber(levelFolder.Name)
+					if levelNum and levelFolder:IsA("Folder") then
+						local lvlDesc = {
+							Cost1 = 0, NewLevel1 = levelNum,
+							Cost5 = 0, NewLevel5 = levelNum,
+							Cost10 = 0, NewLevel10 = levelNum
+						}
+						
+						local c1 = levelFolder:FindFirstChild("Cost1")
+						if c1 and c1:IsA("IntValue") then lvlDesc.Cost1 = c1.Value end
+						local n1 = levelFolder:FindFirstChild("NewLevel1")
+						if n1 and n1:IsA("IntValue") then lvlDesc.NewLevel1 = n1.Value end
+						
+						local c5 = levelFolder:FindFirstChild("Cost5")
+						if c5 and c5:IsA("IntValue") then lvlDesc.Cost5 = c5.Value end
+						local n5 = levelFolder:FindFirstChild("NewLevel5")
+						if n5 and n5:IsA("IntValue") then lvlDesc.NewLevel5 = n5.Value end
+						
+						local c10 = levelFolder:FindFirstChild("Cost10")
+						if c10 and c10:IsA("IntValue") then lvlDesc.Cost10 = c10.Value end
+						local n10 = levelFolder:FindFirstChild("NewLevel10")
+						if n10 and n10:IsA("IntValue") then lvlDesc.NewLevel10 = n10.Value end
+						
+						oxyMap[levelNum] = lvlDesc
+					end
+				end
+				out["OxygenLevels"] = oxyMap
 			end
 		end
 	end
@@ -373,30 +390,25 @@ function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpack
 		return math.huge
 	end
 
-	-- Oxygen Tier 1, 5, 10
-	local cfg = cal.Upgrades[statName]
-	if not cfg then return math.huge end
-
-	local basePrice = cfg.BasePrice
-	local currentIncrement = cfg.BaseIncrement
-	local totalPrice = basePrice
-
-	local loopMod = cfg.IncrementModifier
+	-- Handling new explicit Oxygen map (Oxygen1, Oxygen5, Oxygen10)
+	local oxyMap = cal.Upgrades["OxygenLevels"]
+	if not oxyMap then return math.huge end
 	
-	for i = 1, (playerOxygenLevel or 0) do
-		totalPrice += currentIncrement
-		
-		-- Emulates original modulo additions
-		if loopMod == 1 then
-			currentIncrement += 1
-		else
-			if i % 2 == 0 then
-				currentIncrement += loopMod
-			end
-		end
+	local currentLvl = playerOxygenLevel or 100
+	local levelData = oxyMap[currentLvl]
+	
+	-- Fallback if the requested level maxes out beyond the sheet
+	if not levelData then return math.huge end
+	
+	if statName == "Oxygen1" then
+		return levelData.Cost1, levelData.NewLevel1
+	elseif statName == "Oxygen5" then
+		return levelData.Cost5, levelData.NewLevel5
+	elseif statName == "Oxygen10" then
+		return levelData.Cost10, levelData.NewLevel10
 	end
 
-	return totalPrice
+	return math.huge, currentLvl
 end
 
 return Calibration
