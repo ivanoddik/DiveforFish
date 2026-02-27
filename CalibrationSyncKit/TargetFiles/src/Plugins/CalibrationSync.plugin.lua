@@ -199,13 +199,29 @@ local function processRebirthsSheet(data, calibration)
 		if level and type(rowData) == "table" then
 			local rFolder = ensureFolder(rebirthsFolder, tostring(level))
 			
-			if rowData["Type"] ~= nil and setStringValue(rFolder, "Type", rowData["Type"]) then updated += 1 end
 			if rowData["Name"] ~= nil and rowData["Name"] ~= "" and setStringValue(rFolder, "Name", rowData["Name"]) then updated += 1 end
 			if rowData["Id"] ~= nil and rowData["Id"] ~= "" and setNumberValue(rFolder, "Id", rowData["Id"], true) then updated += 1 end
 			if rowData["Models"] ~= nil and setStringValue(rFolder, "Models", rowData["Models"]) then updated += 1 end
 			
-			if rowData["OxygenBase"] ~= nil and setNumberValue(rFolder, "OxygenBase", rowData["OxygenBase"], true) then updated += 1 end
-			if rowData["OxygenIncrement"] ~= nil and setNumberValue(rFolder, "OxygenIncrement", rowData["OxygenIncrement"], true) then updated += 1 end
+			if rowData["OxygenRequired"] ~= nil and setNumberValue(rFolder, "OxygenRequired", rowData["OxygenRequired"], true) then updated += 1 end
+			if rowData["Movespeed"] ~= nil and setNumberValue(rFolder, "Movespeed", rowData["Movespeed"], false) then updated += 1 end
+			if rowData["RebirthGoldMultiplier"] ~= nil and setNumberValue(rFolder, "RebirthGoldMultiplier", rowData["RebirthGoldMultiplier"], false) then updated += 1 end
+			
+			if rowData["Floor"] ~= nil and rowData["Floor"] ~= "" and rowData["Floor"] ~= 0 then
+				if setNumberValue(rFolder, "Floor", rowData["Floor"], true) then updated += 1 end
+			else
+				-- Remove previously synced Floor if empty
+				local floorInst = rFolder:FindFirstChild("Floor")
+				if floorInst then floorInst:Destroy() end
+			end
+			
+			if rowData["Pad"] ~= nil and rowData["Pad"] ~= "" and rowData["Pad"] ~= 0 then
+				if setNumberValue(rFolder, "Pad", rowData["Pad"], true) then updated += 1 end
+			else
+				-- Remove previously synced Pad if empty
+				local padInst = rFolder:FindFirstChild("Pad")
+				if padInst then padInst:Destroy() end
+			end
 		end
 	end
 	return updated

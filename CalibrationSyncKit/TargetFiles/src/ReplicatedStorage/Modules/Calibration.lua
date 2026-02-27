@@ -95,9 +95,14 @@ local function getRoot()
 
 		local rebirths = ensureFolder(calFolder, "Rebirths")
 		local r1 = ensureFolder(rebirths, "1")
-		ensureString(r1, "Type", "Floor")
-		ensureString(r1, "Name", "Floor2")
-		ensureString(r1, "Models", "Orange Car, Rolls Car")
+		ensureString(r1, "Name", "Rebirth 1")
+		ensureNumber(r1, "Id", 101, 1, 9999, true)
+		ensureString(r1, "Models", "Orange Car, Purple Car")
+		ensureNumber(r1, "OxygenRequired", 150, 0, 999999, true)
+		ensureNumber(r1, "Movespeed", 17.6, 0, 300, false)
+		ensureNumber(r1, "RebirthGoldMultiplier", 1.1, 1, 100, false)
+		ensureNumber(r1, "Floor", 2, 0, 9999, true)
+		ensureNumber(r1, "Pad", 11, 0, 9999, true)
 
 		local upgrades = ensureFolder(calFolder, "Upgrades")
 		local backLevels = ensureFolder(upgrades, "BackpackLevels")
@@ -217,16 +222,15 @@ local function readRebirths(root)
 		local levelNum = tonumber(levelFolder.Name)
 		if levelNum and levelFolder:IsA("Folder") then
 			local desc = {
-				Type = "Pad",
 				Name = "",
 				Id = 0,
 				Models = {},
-				OxygenBase = 150,
-				OxygenIncrement = 25
+				OxygenRequired = 150,
+				Movespeed = 16,
+				RebirthGoldMultiplier = 1,
+				Floor = nil,
+				Pad = nil
 			}
-
-			local typeInst = levelFolder:FindFirstChild("Type")
-			if typeInst and typeInst:IsA("StringValue") then desc.Type = typeInst.Value end
 
 			local nameInst = levelFolder:FindFirstChild("Name")
 			if nameInst and nameInst:IsA("StringValue") then desc.Name = nameInst.Value end
@@ -243,12 +247,20 @@ local function readRebirths(root)
 				end
 			end
 
-			-- Check for Rebirths logic overrides
-			local oxBInst = levelFolder:FindFirstChild("OxygenBase")
-			if oxBInst and oxBInst:IsA("IntValue") then desc.OxygenBase = oxBInst.Value end
+			local oxyInst = levelFolder:FindFirstChild("OxygenRequired")
+			if oxyInst and oxyInst:IsA("IntValue") then desc.OxygenRequired = oxyInst.Value end
 
-			local oxIInst = levelFolder:FindFirstChild("OxygenIncrement")
-			if oxIInst and oxIInst:IsA("IntValue") then desc.OxygenIncrement = oxIInst.Value end
+			local speedInst = levelFolder:FindFirstChild("Movespeed")
+			if speedInst and speedInst:IsA("NumberValue") then desc.Movespeed = speedInst.Value end
+
+			local goldInst = levelFolder:FindFirstChild("RebirthGoldMultiplier")
+			if goldInst and goldInst:IsA("NumberValue") then desc.RebirthGoldMultiplier = goldInst.Value end
+			
+			local floorInst = levelFolder:FindFirstChild("Floor")
+			if floorInst and floorInst:IsA("IntValue") then desc.Floor = floorInst.Value end
+			
+			local padInst = levelFolder:FindFirstChild("Pad")
+			if padInst and padInst:IsA("IntValue") then desc.Pad = padInst.Value end
 
 			out[levelNum] = desc
 		end
@@ -377,11 +389,11 @@ end
 
 function Calibration.GetOxygenRequirement(rebirthLevel)
 	local cal = Calibration.Get()
-	local rStats = cal.Rebirths[1] -- Typically the base/increment stats apply to all, or are stored in level 1
+	local rStats = cal.Rebirths[rebirthLevel]
 	if rStats then
-		return rStats.OxygenBase + (rebirthLevel - 1) * rStats.OxygenIncrement
+		return rStats.OxygenRequired
 	end
-	return 150 + (rebirthLevel - 1) * 25
+	return math.huge -- Extremely high fallback if level out of bounds
 end
 
 function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpackUpgrades)

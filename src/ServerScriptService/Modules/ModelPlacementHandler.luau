@@ -420,7 +420,12 @@ function ModelPlacementHandler.RunEarningsLoop(BasesFolder)
 
 				for _, model in liveModels:GetChildren() do
 					local padName = model:GetAttribute("PadName")
-					local earnings = model:GetAttribute("Earnings") or 0
+					local baseEarnings = model:GetAttribute("Earnings") or 0
+					
+					-- Fetch the multiplier explicitly set during rebirth
+					local rebirthMult = player and player:GetAttribute("RebirthGoldMultiplier") or 1
+					local earnings = math.floor(baseEarnings * rebirthMult)
+					
 					if padName and earnings > 0 then
 						local pad = padsFolder:FindFirstChild(padName)
 						local collect = pad and pad:FindFirstChild("Collect")
@@ -468,8 +473,9 @@ function ModelPlacementHandler.CalculateOfflineEarnings(player, profile, logoutT
 	
 	local totalEarned = 0
 	if totalEPS > 0 and intervals > 0 then
+		local rebirthMult = player:GetAttribute("RebirthGoldMultiplier") or 1
 		local scalingMult = getOfflineMultiplier(totalEPS)
-		totalEarned = math.floor(totalEPS * intervals * scalingMult)
+		totalEarned = math.floor((totalEPS * rebirthMult) * intervals * scalingMult)
 	end
 	
 	local basesFolder = workspace:FindFirstChild("Bases")

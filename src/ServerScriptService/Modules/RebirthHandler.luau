@@ -18,17 +18,20 @@ local REBIRTH_DEBOUNCE = 2
 local playerDebounces = {}
 local ownershipCache = {}
 
-local function getBaseWalkSpeed(player, rebirths)
-	return 16 + (rebirths * 10)
-end
-
 function RebirthHandler.ApplyRebirthBoosts(player, profile)
 	local rebirths = profile.Data.Rebirths or 0
 	
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	
+	local rebirthConfig = Calibration.Get().Rebirths[rebirths]
+	local baseSpeed = rebirthConfig and rebirthConfig.Movespeed or 16
+	local goldMultiplier = rebirthConfig and rebirthConfig.RebirthGoldMultiplier or 1
+	
+	profile:Update("RebirthGoldMultiplier", goldMultiplier)
+	player:SetAttribute("RebirthGoldMultiplier", goldMultiplier)
+
 	if humanoid then
-		local baseSpeed = getBaseWalkSpeed(player, rebirths)
 		local multiplier = 1
 		
 		-- Use cached ownership

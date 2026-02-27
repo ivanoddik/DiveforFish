@@ -342,15 +342,29 @@ function PlayerHandler.UpdateUnlocks(player, rebirthLevel)
 	local builds = base:FindFirstChild("Builds")
 	local padsFolder = base:FindFirstChild("Pads")
 	
-	if builds then
-		local floors = {"Floor1", "Floor2", "Floor3", "Floor4"}
-		local requirements = {0, 1, 12, 23}
-		
-		for i, name in ipairs(floors) do
-			local floor = builds:FindFirstChild(name)
-			if floor then
-				setVisibility(base, floor, rebirthLevel >= requirements[i])
+	-- Determine unlocked floors and pads by checking all rebirth configs up to current level
+	local unlockedFloors = { ["Floor1"] = true } -- Floor1 is always unlocked
+	local unlockedPads = {}
+	
+	for i = 1, 10 do
+		unlockedPads[i] = true -- First 10 pads are default
+	end
+	
+	local configs = Calibration.Get().Rebirths
+	for i = 1, rebirthLevel do
+		if configs[i] then
+			if configs[i].Floor then
+				unlockedFloors["Floor" .. configs[i].Floor] = true
 			end
+			if configs[i].Pad then
+				unlockedPads[configs[i].Pad] = true
+			end
+		end
+	end
+	
+	if builds then
+		for _, floor in builds:GetChildren() do
+			setVisibility(base, floor, unlockedFloors[floor.Name] == true)
 		end
 	end
 	
@@ -358,13 +372,7 @@ function PlayerHandler.UpdateUnlocks(player, rebirthLevel)
 		for _, pad in padsFolder:GetChildren() do
 			local padId = tonumber(pad.Name)
 			if padId then
-				local unlocked = false
-				if padId <= 10 then
-					unlocked = true
-				else
-					-- Every pad after 10 follows a 1-per-rebirth progression
-					unlocked = (rebirthLevel >= (padId - 10))
-				end
+				local unlocked = unlockedPads[padId] == true
 				
 				setVisibility(base, pad, unlocked)
 				if unlocked and not pad:GetAttribute("Active") then
