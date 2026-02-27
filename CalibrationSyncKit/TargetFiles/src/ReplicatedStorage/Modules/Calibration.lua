@@ -100,8 +100,10 @@ local function getRoot()
 		ensureString(r1, "Models", "Orange Car, Rolls Car")
 
 		local upgrades = ensureFolder(calFolder, "Upgrades")
-		local back = ensureFolder(upgrades, "Backpack")
-		ensureString(back, "LevelCosts", "500000, 25000000, 1000000000")
+		local backLevels = ensureFolder(upgrades, "BackpackLevels")
+		local bl1 = ensureFolder(backLevels, "1")
+		ensureNumber(bl1, "Cost", 100000, 0, 999999999, true)
+		ensureNumber(bl1, "NewLevel", 2, 0, 9999, true)
 		local oxyLevels = ensureFolder(upgrades, "OxygenLevels")
 		local ox100 = ensureFolder(oxyLevels, "100")
 		ensureNumber(ox100, "Cost1", 500, 0, 9999999, true)
@@ -262,18 +264,22 @@ local function readUpgrades(root)
 
 	for _, upgFolder in ipairs(uFolder:GetChildren()) do
 		if upgFolder:IsA("Folder") then
-			if upgFolder.Name == "Backpack" then
-				local desc = { Costs = {} }
-				local cInst = upgFolder:FindFirstChild("LevelCosts")
-				if cInst and cInst:IsA("StringValue") then
-					for token in string.gmatch(cInst.Value, "[^,]+") do
-						local cost = tonumber(token:match("^%s*(.-)%s*$"))
-						if cost then
-							table.insert(desc.Costs, cost)
-						end
+			if upgFolder.Name == "BackpackLevels" then
+				local bpMap = {}
+				for _, levelFolder in ipairs(upgFolder:GetChildren()) do
+					local levelNum = tonumber(levelFolder.Name)
+					if levelNum and levelFolder:IsA("Folder") then
+						local lvlDesc = { Cost = 0, NewLevel = levelNum + 1 }
+						
+						local c = levelFolder:FindFirstChild("Cost")
+						if c and c:IsA("IntValue") then lvlDesc.Cost = c.Value end
+						local n = levelFolder:FindFirstChild("NewLevel")
+						if n and n:IsA("IntValue") then lvlDesc.NewLevel = n.Value end
+						
+						bpMap[levelNum] = lvlDesc
 					end
 				end
-				out[upgFolder.Name] = desc
+				out["BackpackLevels"] = bpMap
 			elseif upgFolder.Name == "OxygenLevels" then
 				local oxyMap = {}
 				for _, levelFolder in ipairs(upgFolder:GetChildren()) do
@@ -383,11 +389,13 @@ function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpack
 	
 	if statName == "Backpack" then
 		local backpackLevel = (playerBackpackUpgrades or 0) + 1
-		local cfg = cal.Upgrades["Backpack"]
-		if cfg and cfg.Costs and cfg.Costs[backpackLevel] then
-			return cfg.Costs[backpackLevel]
-		end
-		return math.huge
+		local bpMap = cal.Upgrades["BackpackLevels"]
+		if not bpMap then return math.huge end
+		
+		local levelData = bpMap[backpackLevel]
+		if not levelData then return math.huge end
+		
+		return levelData.Cost, levelData.NewLevel
 	end
 
 	-- Handling new explicit Oxygen map (Oxygen1, Oxygen5, Oxygen10)

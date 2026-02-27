@@ -476,23 +476,28 @@ local function updateUpgrades()
 	end
 
 	local backpackUpgrades = player:GetAttribute("BackpackUpgrades") or 0
-	local nextBackpackLevel = backpackUpgrades + 1
 	local backpackCapacity = player:GetAttribute("BackpackCapacity") or 1
-	local backpackPrice = Calibration.GetUpgradePrice("Backpack", 0, backpackUpgrades)
+	local backpackPrice, newBackpackLevel = Calibration.GetUpgradePrice("Backpack", 0, backpackUpgrades)
 	
 	local backpackUpgradeFrame = backpackHolder:FindFirstChild("Upgrade")
 	if backpackUpgradeFrame then
 		local current = backpackUpgradeFrame:FindFirstChild("Current")
 		local nextLbl = backpackUpgradeFrame:FindFirstChild("Next")
 		if current then current.Text = tostring(backpackCapacity) end
-		if nextLbl then nextLbl.Text = tostring(backpackCapacity + 1) end
+		if nextLbl then 
+			if backpackPrice ~= math.huge and newBackpackLevel then
+				nextLbl.Text = tostring(newBackpackLevel)
+			else
+				nextLbl.Text = "MAX"
+			end
+		end
 	end
 	
 	local backpackBuyBtn = backpackHolder:FindFirstChild("Buy")
 	if backpackBuyBtn then
 		local priceLabel = backpackBuyBtn:FindFirstChild("Price")
 		if priceLabel then
-			if backpackPrice > 0 then
+			if backpackPrice > 0 and backpackPrice ~= math.huge then
 				priceLabel.Text = formatNumber(backpackPrice)
 			else
 				priceLabel.Text = "MAX"

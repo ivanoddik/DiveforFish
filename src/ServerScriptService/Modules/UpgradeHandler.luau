@@ -52,7 +52,7 @@ function UpgradeHandler.ApplyOxygenUpgrade(player, increment, price, newLevel)
 	return true
 end
 
-function UpgradeHandler.ApplyBackpackUpgrade(player, price)
+function UpgradeHandler.ApplyBackpackUpgrade(player, price, newLevel)
 	local profile = DataService:GetProfile(player)
 	if not profile then return false end
 	
@@ -62,7 +62,7 @@ function UpgradeHandler.ApplyBackpackUpgrade(player, price)
 	profile:BatchUpdate(function(data)
 		if price then data.Cash -= price end
 		data.BackpackUpgrades = (data.BackpackUpgrades or 0) + 1
-		data.BackpackCapacity = (data.BackpackCapacity or 1) + 1
+		data.BackpackCapacity = newLevel or ((data.BackpackCapacity or 1) + 1)
 		success = true
 		return true
 	end)
@@ -103,9 +103,9 @@ local function handleUpgradeStat(player, statName)
 		incrementValue = 10
 	elseif statName == "Backpack" then
 		incrementValue = 1
-		local cfg = Calibration.Get().Upgrades["Backpack"]
-		local costs = cfg and cfg.Costs or {}
-		if (profile.Data.BackpackUpgrades or 0) >= #costs then
+		local bpMap = Calibration.Get().Upgrades["BackpackLevels"]
+		local currentLevel = (profile.Data.BackpackUpgrades or 0) + 1
+		if not bpMap or not bpMap[currentLevel] then
 			isLevelCapped = true
 		end
 	else
@@ -132,7 +132,7 @@ local function handleUpgradeStat(player, statName)
 		local success = false
 		
 		if statName == "Backpack" then
-			success = UpgradeHandler.ApplyBackpackUpgrade(player, price)
+			success = UpgradeHandler.ApplyBackpackUpgrade(player, price, newLevel)
 		else
 			-- Oxygen tiers
 			success = UpgradeHandler.ApplyOxygenUpgrade(player, incrementValue, price, newLevel)

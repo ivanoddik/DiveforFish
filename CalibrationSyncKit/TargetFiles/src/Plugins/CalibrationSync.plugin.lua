@@ -214,11 +214,17 @@ end
 local function processBackpackUpgradesSheet(data, calibration)
 	local updated = 0
 	local upgradesFolder = ensureFolder(calibration, "Upgrades")
+	local backpackLevelsFolder = ensureFolder(upgradesFolder, "BackpackLevels")
 	
-	for upgradeType, rowData in pairs(data) do
-		if type(rowData) == "table" and upgradeType == "Backpack" then
-			local tFolder = ensureFolder(upgradesFolder, upgradeType)
-			if rowData["LevelCosts"] ~= nil and setStringValue(tFolder, "LevelCosts", rowData["LevelCosts"]) then updated += 1 end
+	for lvlStr, rowData in pairs(data) do
+		if type(rowData) == "table" then
+			local bLevel = tonumber(lvlStr)
+			if bLevel then
+				local levelFolder = ensureFolder(backpackLevelsFolder, tostring(bLevel))
+				
+				if rowData["Upgrade Cost"] ~= nil and setNumberValue(levelFolder, "Cost", rowData["Upgrade Cost"], true) then updated += 1 end
+				if rowData["NewBackpackLevel"] ~= nil and setNumberValue(levelFolder, "NewLevel", rowData["NewBackpackLevel"], true) then updated += 1 end
+			end
 		end
 	end
 	return updated
