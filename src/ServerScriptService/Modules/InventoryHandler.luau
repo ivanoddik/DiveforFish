@@ -144,32 +144,7 @@ function InventoryHandler.ClaimReward(player)
 	Notify:FireClient(player, "Daily reward collected!", true)
 end
 
-local BASE_SELL_VALUE = 3400
 
-local RARITY_MULTIPLIERS = {
-	Common = 1,
-	Uncommon = 1.5,
-	Rare = 2.5,
-	Epic = 4,
-	Legendary = 6,
-	Mythical = 8,
-	Cosmic = 12,
-	Secret = 20,
-}
-
-local MUTATION_MULTIPLIERS = {
-	Normal = 1,
-	Gold = 1.2,
-	Diamond = 1.5,
-	Emerald = 2,
-	Blood = 3,
-}
-
-local function getSellValue(rarity, mutation)
-	local rMult = RARITY_MULTIPLIERS[rarity] or 1
-	local mMult = MUTATION_MULTIPLIERS[mutation] or 1
-	return math.ceil(BASE_SELL_VALUE * rMult * mMult)
-end
 
 function InventoryHandler.AddToCollections(player, modelName, mutation, rarity)
 	local profile = DataService:GetProfile(player)
@@ -262,10 +237,9 @@ function InventoryHandler.ProcessSell(player)
 	
 	local totalEarnings = 0
 	for _, tool in toolsToSell do
-		local rarity = tool:GetAttribute("Rarity") or "Common"
-		local mutation = tool:GetAttribute("Mutation") or NORMAL_MUTATION
+		local modelName = tool:GetAttribute("SourceModelName") or tool.Name
 		
-		totalEarnings += getSellValue(rarity, mutation)
+		totalEarnings += Calibration.GetSellValue(modelName)
 		tool:Destroy()
 	end
 	

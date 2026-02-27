@@ -249,19 +249,11 @@ local function spawnModel(rarity)
 	model.PrimaryPart = root
 	
 	local mutationName = selectMutation()
-	local multiplier = 1
-	local mutationsTable = Calibration.Get().Mutations
-	if mutationName ~= NORMAL_MUTATION and mutationsTable then
-		local mData = mutationsTable[mutationName]
-		if mData then multiplier = mData.Multiplier or mData.nMultiplier or 1 end
-	end
-	
 	model:SetAttribute("SourceModelName", selectedName)
 	model:SetAttribute("Rarity", rarity)
 	model:SetAttribute("Mutation", mutationName)
 	
-	local baseEarnings = modelData.Earnings or 0
-	local finalEarnings = math.ceil(baseEarnings * multiplier)
+	local finalEarnings = Calibration.GetModelEarnings(selectedName, mutationName)
 	local timeLeft = modelData.BaseTime or 50
 	local expiration = os.clock() + timeLeft
 	

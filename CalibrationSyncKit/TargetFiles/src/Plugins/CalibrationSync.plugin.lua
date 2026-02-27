@@ -158,8 +158,14 @@ local function processModelsSheet(data, calibration)
 				local rarityFolder = ensureFolder(modelsFolder, rarity)
 				local carFolder = ensureFolder(rarityFolder, modelName)
 				
-				if rowData["Earnings"] ~= nil and setNumberValue(carFolder, "Earnings", rowData["Earnings"], true) then updated += 1 end
 				if rowData["BaseTime"] ~= nil and setNumberValue(carFolder, "BaseTime", rowData["BaseTime"], false) then updated += 1 end
+				if rowData["SellValue"] ~= nil and setNumberValue(carFolder, "SellValue", rowData["SellValue"], true) then updated += 1 end
+				
+				if rowData["NormalEarnings"] ~= nil and setNumberValue(carFolder, "NormalEarnings", rowData["NormalEarnings"], true) then updated += 1 end
+				if rowData["GoldEarnings"] ~= nil and setNumberValue(carFolder, "GoldEarnings", rowData["GoldEarnings"], true) then updated += 1 end
+				if rowData["DiamondEarnings"] ~= nil and setNumberValue(carFolder, "DiamondEarnings", rowData["DiamondEarnings"], true) then updated += 1 end
+				if rowData["EmeraldEarnings"] ~= nil and setNumberValue(carFolder, "EmeraldEarnings", rowData["EmeraldEarnings"], true) then updated += 1 end
+				if rowData["BloodEarnings"] ~= nil and setNumberValue(carFolder, "BloodEarnings", rowData["BloodEarnings"], true) then updated += 1 end
 				
 				local iconsFolder = ensureFolder(carFolder, "Icons")
 				if rowData["NormalIcon"] ~= nil and setStringValue(iconsFolder, "Normal", rowData["NormalIcon"]) then updated += 1 end

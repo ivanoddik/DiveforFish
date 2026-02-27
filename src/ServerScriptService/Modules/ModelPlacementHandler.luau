@@ -335,18 +335,7 @@ function ModelPlacementHandler.SetupPlacementPrompt(pad, base)
 				if savedEarnings and savedEarnings > 0 then
 					finalEarnings = savedEarnings
 				else
-					-- Notify PerformanceHandler for visuals
-					local multiplier = 1
-					local mutationsTable = Calibration.Get().Mutations
-					if mutation ~= NORMAL_MUTATION and mutationsTable then
-						local mData = mutationsTable[mutation]
-						if mData then
-							multiplier = mData.Multiplier or mData.nMultiplier or 1
-						end
-					end
-					
-					local baseEarnings = if info then (info.Earnings or 0) else 0
-					finalEarnings = math.ceil(baseEarnings * multiplier)
+					finalEarnings = Calibration.GetModelEarnings(modelName, mutation)
 				end
 				
 				clonedModel:SetAttribute("Earnings", finalEarnings)

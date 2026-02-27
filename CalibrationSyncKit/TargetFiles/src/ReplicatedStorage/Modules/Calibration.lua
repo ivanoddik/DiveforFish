@@ -81,8 +81,13 @@ local function getRoot()
 		local models = ensureFolder(calFolder, "Models")
 		local common = ensureFolder(models, "Common")
 		local car = ensureFolder(common, "Orange Car")
-		ensureNumber(car, "Earnings", 15, 0, 99999, true)
 		ensureNumber(car, "BaseTime", 60, 0, 9999, false)
+		ensureNumber(car, "SellValue", 500, 0, 99999, true)
+		ensureNumber(car, "NormalEarnings", 15, 0, 99999, true)
+		ensureNumber(car, "GoldEarnings", 30, 0, 99999, true)
+		ensureNumber(car, "DiamondEarnings", 45, 0, 99999, true)
+		ensureNumber(car, "EmeraldEarnings", 60, 0, 99999, true)
+		ensureNumber(car, "BloodEarnings", 75, 0, 99999, true)
 		local icons = ensureFolder(car, "Icons")
 		ensureString(icons, "Normal", "rbxassetid://100378056095272")
 
@@ -152,16 +157,36 @@ local function readModels(root)
 			for _, carFolder in ipairs(rarityFolder:GetChildren()) do
 				if carFolder:IsA("Folder") then
 					local desc = {
-						Earnings = 0,
 						BaseTime = 0,
+						SellValue = 0,
+						NormalEarnings = 0,
+						GoldEarnings = 0,
+						DiamondEarnings = 0,
+						EmeraldEarnings = 0,
+						BloodEarnings = 0,
 						Icons = {}
 					}
 
-					local earnInst = carFolder:FindFirstChild("Earnings")
-					if earnInst and earnInst:IsA("IntValue") then desc.Earnings = earnInst.Value end
-
 					local timeInst = carFolder:FindFirstChild("BaseTime")
 					if timeInst and timeInst:IsA("NumberValue") then desc.BaseTime = timeInst.Value end
+					
+					local sellInst = carFolder:FindFirstChild("SellValue")
+					if sellInst and sellInst:IsA("IntValue") then desc.SellValue = sellInst.Value end
+
+					local normInst = carFolder:FindFirstChild("NormalEarnings")
+					if normInst and normInst:IsA("IntValue") then desc.NormalEarnings = normInst.Value end
+					
+					local goldInst = carFolder:FindFirstChild("GoldEarnings")
+					if goldInst and goldInst:IsA("IntValue") then desc.GoldEarnings = goldInst.Value end
+					
+					local diaInst = carFolder:FindFirstChild("DiamondEarnings")
+					if diaInst and diaInst:IsA("IntValue") then desc.DiamondEarnings = diaInst.Value end
+					
+					local emInst = carFolder:FindFirstChild("EmeraldEarnings")
+					if emInst and emInst:IsA("IntValue") then desc.EmeraldEarnings = emInst.Value end
+					
+					local bloInst = carFolder:FindFirstChild("BloodEarnings")
+					if bloInst and bloInst:IsA("IntValue") then desc.BloodEarnings = bloInst.Value end
 
 					local iconsFolder = carFolder:FindFirstChild("Icons")
 					if iconsFolder and iconsFolder:IsA("Folder") then
@@ -429,6 +454,35 @@ function Calibration.GetUpgradePrice(statName, playerOxygenLevel, playerBackpack
 	end
 
 	return math.huge, currentLvl
+end
+
+function Calibration.GetModelEarnings(modelName, mutationName)
+	local cal = Calibration.Get()
+	for _, rarityTable in pairs(cal.Models) do
+		local modelData = rarityTable[modelName]
+		if modelData then
+			local t = mutationName or "Normal"
+			if t == "Normal" then return modelData.NormalEarnings or 0
+			elseif t == "Gold" then return modelData.GoldEarnings or 0
+			elseif t == "Diamond" then return modelData.DiamondEarnings or 0
+			elseif t == "Emerald" then return modelData.EmeraldEarnings or 0
+			elseif t == "Blood" then return modelData.BloodEarnings or 0
+			end
+			return modelData.NormalEarnings or 0
+		end
+	end
+	return 0
+end
+
+function Calibration.GetSellValue(modelName)
+	local cal = Calibration.Get()
+	for _, rarityTable in pairs(cal.Models) do
+		local modelData = rarityTable[modelName]
+		if modelData then
+			return modelData.SellValue or 0
+		end
+	end
+	return 0
 end
 
 return Calibration
