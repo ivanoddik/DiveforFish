@@ -20,8 +20,6 @@ local ModelHandler = {}
 local LIVE_MODELS_NAME = "LiveModels"
 local NORMAL_MUTATION = "Normal"
 local TAG_SPAWNED_MODEL = "SpawnModel"
-local SPAWN_QUEUE_DELAY = 0.5
-local MIN_SPAWN_DISTANCE = 8
 local MAX_SPAWN_ATTEMPTS = 5
 
 -- State
@@ -31,17 +29,6 @@ local POOLS = {}
 local SPAWN_QUEUE = {}
 local ACTIVE_MODELS = {} 
 local EXPIRATION_SORTED = {}
-
-local MAX_SPAWN = {
-	["Common"] = 7,
-	["Uncommon"] = 9,
-	["Rare"] = 12,
-	["Epic"] = 12,
-	["Legendary"] = 9,
-	["Mythical"] = 7,
-	["Cosmic"] = 5,
-	["Secret"] = 4,
-}
 
 local currentSpawnCounts = {
 	["Common"] = 0,
@@ -130,7 +117,7 @@ local function cleanupModel(model)
 	returnToPool(model)
 	
 	task.delay(5, function()
-		if currentSpawnCounts[rarity] < MAX_SPAWN[rarity] then
+		if currentSpawnCounts[rarity] < (Calibration.GetZoneSpawnLimits("DefaultArea")["Max" .. rarity] or 0) then
 			table.insert(SPAWN_QUEUE, rarity)
 		end
 	end)
@@ -215,7 +202,7 @@ function ModelHandler.CaptureModel(model, player)
 	
 	TutorialHandler.OnModelCaptured(player)
 	task.delay(5, function()
-		if currentSpawnCounts[rarity] < MAX_SPAWN[rarity] then
+		if currentSpawnCounts[rarity] < (Calibration.GetZoneSpawnLimits("DefaultArea")["Max" .. rarity] or 0) then
 			table.insert(SPAWN_QUEUE, rarity)
 		end
 	end)
@@ -259,7 +246,7 @@ local function spawnModel(rarity)
 		local potentialPos = getRandomPositionInPart(zonePart)
 		local isTooClose = false
 		for otherModel, _ in pairs(ACTIVE_MODELS) do
-			if (potentialPos - otherModel:GetPivot().Position).Magnitude < MIN_SPAWN_DISTANCE then
+			if (potentialPos - otherModel:GetPivot().Position).Magnitude < Calibration.GetZoneSpawnLimits("DefaultArea").MinSpawnDistance then
 				isTooClose = true
 				break
 			end
@@ -328,7 +315,7 @@ local function startManagerLoop()
 			if #SPAWN_QUEUE > 0 then
 				local rarity = table.remove(SPAWN_QUEUE, 1)
 				spawnModel(rarity)
-				task.wait(SPAWN_QUEUE_DELAY)
+				task.wait(Calibration.GetZoneSpawnLimits("DefaultArea").SpawnQueueDelay)
 			end
 		end
 	end)
@@ -340,7 +327,7 @@ function ModelHandler.Init()
 	
 	local zonesFolder = Workspace:WaitForChild("Zones", 5)
 	if zonesFolder then
-		for rarity, _ in pairs(MAX_SPAWN) do
+		for _, rarity in ipairs(RARITY_ORDER) do
 			for _, child in zonesFolder:GetChildren() do
 				if child:IsA("BasePart") and child.Name:lower() == rarity:lower() then
 					ZONES[rarity] = child
@@ -350,9 +337,9 @@ function ModelHandler.Init()
 		end
 	end
 	
-	for _, rarity in RARITY_ORDER do
+	for _, rarity in ipairs(RARITY_ORDER) do
 		if ZONES[rarity] then
-			for i = 1, MAX_SPAWN[rarity] do table.insert(SPAWN_QUEUE, rarity) end
+			for i = 1, (Calibration.GetZoneSpawnLimits("DefaultArea")["Max" .. rarity] or 0) do table.insert(SPAWN_QUEUE, rarity) end
 		end
 	end
 	

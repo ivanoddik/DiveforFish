@@ -125,6 +125,19 @@ local function getRoot()
 		ensureNumber(ox100, "NewLevel5", 105, 0, 9999999, true)
 		ensureNumber(ox100, "Cost10", 6125, 0, 9999999, true)
 		ensureNumber(ox100, "NewLevel10", 110, 0, 9999999, true)
+
+		local sZone = ensureFolder(calFolder, "SpawnZones")
+		local dArea = ensureFolder(sZone, "DefaultArea")
+		ensureNumber(dArea, "MaxCommon", 7, 0, 9999, true)
+		ensureNumber(dArea, "MaxUncommon", 9, 0, 9999, true)
+		ensureNumber(dArea, "MaxRare", 12, 0, 9999, true)
+		ensureNumber(dArea, "MaxEpic", 12, 0, 9999, true)
+		ensureNumber(dArea, "MaxLegendary", 9, 0, 9999, true)
+		ensureNumber(dArea, "MaxMythical", 7, 0, 9999, true)
+		ensureNumber(dArea, "MaxCosmic", 5, 0, 9999, true)
+		ensureNumber(dArea, "MaxSecret", 4, 0, 9999, true)
+		ensureNumber(dArea, "MinSpawnDistance", 8, 0, 9999, false)
+		ensureNumber(dArea, "SpawnQueueDelay", 0.5, 0.05, 999, false)
 	end
 
 	local config = ReplicatedStorage:FindFirstChild("Config")
@@ -357,6 +370,44 @@ local function readUpgrades(root)
 	return out
 end
 
+local function readSpawnZones(root)
+	local out = {}
+	local zFolder = root:FindFirstChild("SpawnZones")
+	if not zFolder then return out end
+	
+	for _, f in ipairs(zFolder:GetChildren()) do
+		if f:IsA("Folder") then
+			local desc = {
+				MaxCommon = 7,
+				MaxUncommon = 9,
+				MaxRare = 12,
+				MaxEpic = 12,
+				MaxLegendary = 9,
+				MaxMythical = 7,
+				MaxCosmic = 5,
+				MaxSecret = 4,
+				MinSpawnDistance = 8,
+				SpawnQueueDelay = 0.5
+			}
+			
+			local function tryRead(propName)
+				local inst = f:FindFirstChild(propName)
+				if inst and (inst:IsA("IntValue") or inst:IsA("NumberValue")) then
+					desc[propName] = inst.Value
+				end
+			end
+			
+			tryRead("MaxCommon") tryRead("MaxUncommon") tryRead("MaxRare") tryRead("MaxEpic")
+			tryRead("MaxLegendary") tryRead("MaxMythical") tryRead("MaxCosmic") tryRead("MaxSecret")
+			tryRead("MinSpawnDistance") tryRead("SpawnQueueDelay")
+			
+			out[f.Name] = desc
+		end
+	end
+	
+	return out
+end
+
 local function buildCalibration()
 	local root = getRoot()
 
@@ -365,6 +416,7 @@ local function buildCalibration()
 		Mutations = readMutations(root),
 		Rebirths = readRebirths(root),
 		Upgrades = readUpgrades(root),
+		SpawnZones = readSpawnZones(root),
 	}
 
 	return cal
@@ -502,6 +554,26 @@ function Calibration.GetMutationSpawns()
 	end)
 	
 	return spawns
+end
+
+function Calibration.GetZoneSpawnLimits(zoneName)
+	local cal = Calibration.Get()
+	if cal and cal.SpawnZones and cal.SpawnZones[zoneName] then
+		return cal.SpawnZones[zoneName]
+	end
+	
+	return {
+		MaxCommon = 7,
+		MaxUncommon = 9,
+		MaxRare = 12,
+		MaxEpic = 12,
+		MaxLegendary = 9,
+		MaxMythical = 7,
+		MaxCosmic = 5,
+		MaxSecret = 4,
+		MinSpawnDistance = 8,
+		SpawnQueueDelay = 0.5
+	}
 end
 
 return Calibration

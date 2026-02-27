@@ -276,6 +276,29 @@ local function processOxygenUpgradesSheet(data, calibration)
 	end
 	return updated
 end
+local function processSpawnZonesSheet(data, calibration)
+	local updated = 0
+	local zonesFolder = ensureFolder(calibration, "SpawnZones")
+	
+	for zoneName, rowData in pairs(data) do
+		if type(rowData) == "table" then
+			local zFolder = ensureFolder(zonesFolder, tostring(zoneName))
+			
+			if rowData["MaxCommon"] ~= nil and setNumberValue(zFolder, "MaxCommon", rowData["MaxCommon"], true) then updated += 1 end
+			if rowData["MaxUncommon"] ~= nil and setNumberValue(zFolder, "MaxUncommon", rowData["MaxUncommon"], true) then updated += 1 end
+			if rowData["MaxRare"] ~= nil and setNumberValue(zFolder, "MaxRare", rowData["MaxRare"], true) then updated += 1 end
+			if rowData["MaxEpic"] ~= nil and setNumberValue(zFolder, "MaxEpic", rowData["MaxEpic"], true) then updated += 1 end
+			if rowData["MaxLegendary"] ~= nil and setNumberValue(zFolder, "MaxLegendary", rowData["MaxLegendary"], true) then updated += 1 end
+			if rowData["MaxMythical"] ~= nil and setNumberValue(zFolder, "MaxMythical", rowData["MaxMythical"], true) then updated += 1 end
+			if rowData["MaxCosmic"] ~= nil and setNumberValue(zFolder, "MaxCosmic", rowData["MaxCosmic"], true) then updated += 1 end
+			if rowData["MaxSecret"] ~= nil and setNumberValue(zFolder, "MaxSecret", rowData["MaxSecret"], true) then updated += 1 end
+			
+			if rowData["MinSpawnDistance"] ~= nil and setNumberValue(zFolder, "MinSpawnDistance", rowData["MinSpawnDistance"], false) then updated += 1 end
+			if rowData["SpawnQueueDelay"] ~= nil and setNumberValue(zFolder, "SpawnQueueDelay", rowData["SpawnQueueDelay"], false) then updated += 1 end
+		end
+	end
+	return updated
+end
 
 local function syncCalibration()
 	local webAppUrl = getWebAppUrl()
@@ -293,6 +316,7 @@ local function syncCalibration()
 		{ names = {"Rebirths"}, processor = processRebirthsSheet },
 		{ names = {"BackpackUpgrades"}, processor = processBackpackUpgradesSheet },
 		{ names = {"OxygenUpgrades"}, processor = processOxygenUpgradesSheet },
+		{ names = {"SpawnZones"}, processor = processSpawnZonesSheet },
 	}
 	
 	for _, sheetConfig in ipairs(sheetsToProcess) do
